@@ -30,10 +30,12 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.23.0",
+    "chart.js": "^2.6.0",
     "es6-promise": "^4.1.0",
     "immutability-helper": "^2.2.2",
     "prop-types": "^15.5.9",
     "react": "^15.5.4",
+    "react-chartjs-2": "^2.5.7",
     "react-dom": "^15.5.4",
     "react-redux": "^5.0.4",
     "react-router": "^4.1.1",
