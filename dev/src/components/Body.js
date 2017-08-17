@@ -32,11 +32,11 @@ class Body extends Component {
 			let params = _mapA(fileReader.result.split(/\s+/), (d, i) => (d && i % 2 == 1 ? parseFloat(d) : undefined));
 
 			let options = {
-				damping: 0.01,
+				damping: 0.1,
 				initialValues: params,
-				gradientDifference: 10e-10,
-				maxIterations: 10,
-				errorTolerance: 10e-10
+				gradientDifference: 10e-15,
+				maxIterations: 1000,
+				errorTolerance: 10e-15
 			};
 			let result = LMMethod({x: this.state.xData, y: this.state.expData}, _totalIntens, options);
 
