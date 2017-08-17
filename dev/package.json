@@ -33,6 +33,7 @@
     "chart.js": "^2.6.0",
     "es6-promise": "^4.1.0",
     "immutability-helper": "^2.2.2",
+    "ml-levenberg-marquardt": "^1.0.1",
     "prop-types": "^15.5.9",
     "react": "^15.5.4",
     "react-chartjs-2": "^2.5.7",

@@ -1,14 +1,18 @@
 import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import {Line} from 'react-chartjs-2';
-import {_forIn, _mapO} from '../accessories/functions';
+import LMMethod from 'ml-levenberg-marquardt';
+import {_plData, _totalIntens} from '../functions';
+import {_forIn, _mapO, _mapA} from '../accessories/functions';
 
 class Body extends Component {
 	constructor(){
 		super();
 		this.state = {
 			xData: [],
-			expData: []
+			expData: [],
+			partial: [],
+			total: []
 		};
 	}
 	setExpData(file){
@@ -16,7 +20,7 @@ class Body extends Component {
 		fileReader.onload = () => {
 			let x = []; let exp = [];
 			_forIn(fileReader.result.split(/\s+/), (d, i) => {if(d){
-				(i % 2 == 0 ? x.push(d) : exp.push(d))
+				(i % 2 == 0 ? x.push(parseFloat(d)) : exp.push(parseFloat(d)))
 			}});
 			this.setState({xData: x, expData: exp});
 		};
@@ -25,9 +29,21 @@ class Body extends Component {
 	setFitData(file){
 		let fileReader = new FileReader();
 		fileReader.onload = () => {
-			let data = fileReader.result.split(/\s+/);
-			let params = _mapO(data, (d, i) => (d && i % 2 == 0 ? [d, parseFloat(data[++i])] : undefined));
-			console.log(params);
+			let params = _mapA(fileReader.result.split(/\s+/), (d, i) => (d && i % 2 == 1 ? parseFloat(d) : undefined));
+
+			let options = {
+				damping: 0.01,
+				initialValues: params,
+				gradientDifference: 10e-10,
+				maxIterations: 10,
+				errorTolerance: 10e-10
+			};
+			let result = LMMethod({x: this.state.xData, y: this.state.expData}, _totalIntens, options);
+
+			let {partial, total} = _plData(result.parameterValues, this.state.xData);
+			this.setState({partial, total});
+
+			console.log(result, params);
 		};
 		fileReader.readAsText(file);
 	}
@@ -38,17 +54,66 @@ class Body extends Component {
 			this.setFitData(etc.target.files[0]); break;
 	}}
 	render(){
-		const {xData, expData} = this.state;
+		const {xData, expData, partial, total} = this.state;
 		const change = (args) => this.handleChange.bind(this, args);
 		const ref = (name) => (instance) => {this.refs[name] = instance;};
 		const chartData = {
 			labels: xData,
-			datasets: [{
-				label: '실험데이터',
-				fill: false,
-				data: expData
-			}]
+			datasets: [
+				{
+					data: expData,
+					label: 'exp',
+					borderColor: 'rgba(0, 0, 0, 0.5)',
+					borderWidth: 1,
+					fill: false,
+					pointRadius: 0
+				}
+			]
 		};
+		if(partial.length > 0){
+			chartData.datasets.push(
+				{
+					data: total,
+					label: 'total',
+					borderColor: 'rgba(75,192,192,1)',
+					borderWidth: 1,
+					fill: false,
+					pointRadius: 0
+				},
+				{
+					data: partial[0],
+					label: 'I11',
+					borderColor: 'red',
+					borderWidth: 1,
+					fill: false,
+					pointRadius: 0
+				},
+				{
+					data: partial[1],
+					label: 'I12',
+					borderColor: 'blue',
+					borderWidth: 1,
+					fill: false,
+					pointRadius: 0
+				},
+				{
+					data: partial[2],
+					label: 'I21',
+					borderColor: 'orange',
+					borderWidth: 1,
+					fill: false,
+					pointRadius: 0
+				},
+				{
+					data: partial[3],
+					label: 'I22',
+					borderColor: 'green',
+					borderWidth: 1,
+					fill: false,
+					pointRadius: 0
+				}
+			)
+		}
 		return (
 			<div className="body">
 				<div className="body__head">
