@@ -1,20 +1,23 @@
 import {_forIn, _mapA} from './accessories/functions';
 
-const intensity = ([A11, A12, A21, A22, G1, G2, Eg1, Eg2, DEh2, Ef, Eloc, Efh, Te, Th, me, mhh], hw) => {
+export const _paramNames =
+	['A11', 'A12', 'A21', 'A22', 'G1', 'G2', 'Eg1', 'Eg2', 'DEh2', 'Ef', 'Eloc', 'Efh', 'Te', 'Th', 'me', 'mh'];
+
+const intensity = ([A11, A12, A21, A22, G1, G2, Eg1, Eg2, DEh2, Ef, Eloc, Efh, Te, Th, me, mh], hw) => {
 	const A = [[null], [null, A11, A12], [null, A21, A22]];
 	const Eg = [null, Eg1, Eg2];
 	const G = [null, G1, G2];
 	const DEh = [null, 0, DEh2];
-	const k = 8.6173303 * Math.pow(10, -5);
+	const k = 8.6173303e-5;
 
 	const D = (i, j) => (1/(1 + Math.exp(-(hw - DEh[j] - Eg[i])/G[i])));
-	const fe = (i, j) => (1/(1 + Math.exp(((mhh/(me + mhh))*(hw - DEh[j]) + (me/(me + mhh))*Eg[i] - Ef)/(k*Te))));
+	const fe = (i, j) => (1/(1 + Math.exp(((mh/(me + mh))*(hw - DEh[j]) + (me/(me + mh))*Eg[i] - Ef)/(k*Te))));
 	const fh = (i, j) => {
 		//if(Eloc > 0){
 		if(true){
-			return (hw - DEh[j] - Eg[i] < 0 ? 1 : 1/Math.pow((1 + (me/(me + mhh))*(hw - DEh[j] - Eg[i])/(Eloc - DEh[j])), 2));
+			return (hw - DEh[j] - Eg[i] < 0 ? 1 : 1/Math.pow((1 + (me/(me + mh))*(hw - DEh[j] - Eg[i])/(Eloc - DEh[j])), 2));
 		} else {
-			return 1/(1 + Math.exp(((me/(me + mhh))*(hw - DEh[j] - Eg[i]) - (Efh - DEh[j]))/(k*Th)));
+			return 1/(1 + Math.exp(((me/(me + mh))*(hw - DEh[j] - Eg[i]) - (Efh - DEh[j]))/(k*Th)));
 		}
 	};
 	const intens = (i, j) => A[i][j]*D(i, j)*fe(i, j)*fh(i, j);
@@ -25,9 +28,6 @@ const intensity = ([A11, A12, A21, A22, G1, G2, Eg1, Eg2, DEh2, Ef, Eloc, Efh, T
 export const _totalIntens = (params) => (hw) => {
 	let ps = intensity(params, hw);
 	return ps[0] + ps[1] + ps[2] + ps[3];
-	//let total = 0;
-	//_forIn(partials, (p) => {total += p;});
-	//return total;
 };
 
 export const _plData = (params, xData) => {
