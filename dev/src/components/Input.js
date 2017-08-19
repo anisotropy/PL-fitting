@@ -28,29 +28,28 @@ class Input extends PureComponent {
   constructor(){
     super();
     this.hChange = this.handleChange.bind(this);
-    this.hFocus = this.handleFocus.bind(this);
-    this.hBlur = this.handleBlur.bind(this);
+    this.hClick = this.handleClick.bind(this);
     this.uCheckBox = this.updateCheckBox.bind(this);
   }
   handleChange(event){
-    this.props.onUpdate({name: this.props.name, which: 'value', value: event.target.value.replace(/[^0-9e\.]/, '')});
+    //this.props.onUpdate({value: event.target.value.replace(/[^0-9e\.]/, '')});
+    this.props.onUpdate({which: 'value', value: event.target.value.replace(/[^0-9e\.]/, '')});
   }
-  handleFocus(){
-    this.props.onUpdate({name: this.props.name, which: 'focused', value: true});
-  }
-  handleBlur(){
-    this.props.onUpdate({name: this.props.name, which: 'focused', value: false});
+  handleClick(){
+    //this.props.onUpdate({marked: true});
+    this.props.onUpdate({which: 'marked', value: true});
   }
   updateCheckBox(checked){
-    this.props.onUpdate({name: this.props.name, which: 'checked', value: checked});
+    //this.props.onUpdate({checked});
+    this.props.onUpdate({which: 'checked', value: checked});
   }
   render(){
-    const {name, value, checked, focused} = this.props;
+    const {name, value, checked, marked} = this.props; console.log('input');
     return (
-      <div className={_class('input', [{focused}])}>
+      <div className={_class('input', [{marked}])}>
         <CheckBox checked={checked} onUpdate={this.uCheckBox} />
         <span className="input__name">{name}</span>
-        <input type="text" value={value} onChange={this.hChange} onFocus={this.hFocus} onBlur={this.hBlur} />
+        <input type="text" value={value} onChange={this.hChange} onClick={this.hClick} />
       </div>
     );
   }
@@ -59,7 +58,7 @@ Input.propTypes = {
   name: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,
   checked: PropTypes.bool,
-  focused: PropTypes.bool,
+  marked: PropTypes.bool,
   onUpdate: PropTypes.func.isRequired
 };
 

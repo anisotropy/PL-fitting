@@ -7,24 +7,21 @@ import {_mapA, _extract} from '../accessories/functions';
 class Editor extends PureComponent {
   constructor(){
     super();
-    this.hUpdate = (args) => this.handleUpdate.bind(this, args);
-    this.uParams = this.updateParams.bind(this);
+    this.uParams = [];
   }
-  handleUpdate(args, etc){switch(args.which){
-    case 'input':
-      this.props.onUpdate({which: 'params', index: args.index, value: etc}); break;
+  componentWillMount(){
+    this.uParams = _mapA(this.props.params, (p, i) => this.updateParams.bind(this, i));
+  }
+  updateParams(index, args){switch(args.which){
+    case 'value': case 'checked':
+      this.props.onModify({method: 'update', index, value: {[args.which]: args.value}}); break;
+    case 'marked':
+      this.props.onModify({method: 'mark', index}); break;
   }}
-  updateParams(args){
-    let index = _extract(this.props.params, (p, i) => (p.name == args.name ? i : undefined));
-    this.props.onUpdate({which: index, value: {[args.which]: args.value}});
-  }
-  test(){
-    this.props.onUpdate({which: 'params', index: 2, value: {focused: true}});
-  }
   render(){
     const {params} = this.props;
     const Inputs = _mapA(params, (p, i) => (
-      <Input key={p.name} {...p} onUpdate={this.uParams} />
+      <Input key={p.name} {...p} onUpdate={this.uParams[i]} />
     ));
     return (
       <div className="editor">
@@ -35,7 +32,7 @@ class Editor extends PureComponent {
 }
 Editor.propTypes = {
   params: PropTypes.array.isRequired,
-  onUpdate: PropTypes.func.isRequired
+  onModify: PropTypes.func.isRequired
 };
 
 export default Editor;

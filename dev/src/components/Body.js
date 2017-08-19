@@ -12,13 +12,13 @@ class Body extends Component {
 	constructor(){
 		super();
 		this.state = {
-			params: _mapA(_paramNames, (name) => ({name, value: '0', checked: true, focused: false})),
+			params: _mapA(_paramNames, (name) => ({name, value: '0', checked: true, marked: false})),
 			xData: [],
 			expData: [],
 			partial: [],
 			total: []
 		};
-		this.uParams = this.updateParams.bind(this);
+		this.mParams = this.modifyParams.bind(this);
 	}
 	setExpData(file){
 		let fileReader = new FileReader();
@@ -51,12 +51,16 @@ class Body extends Component {
 		};
 		fileReader.readAsText(file);
 	}
-	updateParams(args){
-		this.setState({params: update(this.state.params, {[args.which]: {$merge: args.value}})});
-	}
+	modifyParams(args){switch(args.method){
+		case 'update':
+			this.setState({params: update(this.state.params, {[args.index]: {$merge: args.value}})}); break;
+		case 'mark':
+			this.setState({params: update(this.state.params, {$apply:(params) =>
+				_mapA(params, (p, i) => (i == args.index ? update(p, {marked: {$set: true}}) : update(p, {marked: {$set: false}})))
+			})}); break;
+	}}
 	render(){
 		const {xData, expData, partial, total} = this.state;
-
 		const ref = (name) => (instance) => {this.refs[name] = instance;};
 		return (
 			<div className="body">
@@ -66,7 +70,7 @@ class Body extends Component {
 						<input type="file" onChange={change({which: 'params'})} />
 					}
 				</div>*/}
-				<Editor {...this.state} onUpdate={this.uParams} />
+				<Editor {...this.state} onModify={this.mParams} />
 				{/*<Graph {...this.state} onUpdate={hUpdate({which: 'graph'})} />*/}
 			</div>
 		);
