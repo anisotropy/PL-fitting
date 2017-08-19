@@ -1,9 +1,9 @@
-import React, {Component} from 'react';
+import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import update from 'immutability-helper';
 import {Line} from 'react-chartjs-2';
 
-class Graph extends Component {
+class Graph extends PureComponent {
   render(){
     const {xData, expData, partial, total} = this.props;
     const makeData = (data, label, borderColor) => ({

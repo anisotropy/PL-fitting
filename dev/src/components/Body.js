@@ -4,6 +4,7 @@ import Editor from './Editor';
 import Graph from './Graph';
 import {Line} from 'react-chartjs-2';
 import LMMethod from 'ml-levenberg-marquardt';
+import update from 'immutability-helper';
 import {_plData, _totalIntens, _paramNames} from '../functions';
 import {_forIn, _mapO, _mapA} from '../accessories/functions';
 
@@ -11,12 +12,13 @@ class Body extends Component {
 	constructor(){
 		super();
 		this.state = {
-			params: _mapA(_paramNames, (name) => ({name, value: 0, checked: false, marked: false})),
+			params: _mapA(_paramNames, (name) => ({name, value: '0', checked: true, focused: false})),
 			xData: [],
 			expData: [],
 			partial: [],
 			total: []
 		};
+		this.uParams = this.updateParams.bind(this);
 	}
 	setExpData(file){
 		let fileReader = new FileReader();
@@ -49,19 +51,12 @@ class Body extends Component {
 		};
 		fileReader.readAsText(file);
 	}
-	handleChange(args, etc){switch(args.which){
-		case 'expData':
-			this.setExpData(etc.target.files[0]); break;
-		case 'params':
-			this.setFitData(etc.target.files[0]); break;
-	}}
-	handleUpdate(args, etc){
-
+	updateParams(args){
+		this.setState({params: update(this.state.params, {[args.which]: {$merge: args.value}})});
 	}
 	render(){
 		const {xData, expData, partial, total} = this.state;
-		const change = (args) => this.handleChange.bind(this, args);
-		const hUpdate = (args) => this.handleUpdate.bind(this, args);
+
 		const ref = (name) => (instance) => {this.refs[name] = instance;};
 		return (
 			<div className="body">
@@ -71,7 +66,7 @@ class Body extends Component {
 						<input type="file" onChange={change({which: 'params'})} />
 					}
 				</div>*/}
-				<Editor {...this.state} onUpdate={hUpdate({which: 'editor'})} />
+				<Editor {...this.state} onUpdate={this.uParams} />
 				{/*<Graph {...this.state} onUpdate={hUpdate({which: 'graph'})} />*/}
 			</div>
 		);
