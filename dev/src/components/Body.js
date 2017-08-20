@@ -4,6 +4,7 @@ import Editor from './Editor';
 import Graph from './Graph';
 import {Line} from 'react-chartjs-2';
 import LMMethod from 'ml-levenberg-marquardt';
+import Button from './Button';
 import update from 'immutability-helper';
 import {_plData, _pl, _paramNames} from '../functions';
 import {_wrap, _forIn, _mapO, _mapA, _extract} from '../accessories/functions';
@@ -18,10 +19,14 @@ class Body extends Component {
 			expData: [],
 			partial: [],
 			total: [],
+			resultVisible: false,
 			spinner: false
 		};
-		this.mParams = this.modifyParams.bind(this);
-		this.mGraph = this.modifyGraph.bind(this);
+		this.hMdParams = this.handleModifyParams.bind(this);
+		this.hMdGraph = this.handleModifyGraph.bind(this);
+		this.hClick = {
+			resultBtn: this.handleClick.bind(this, 'resultBtn')
+		};
 	}
 	componentWillMount(){
 		let params = _mapA(_paramNames, (name) => ({name, value: '0', checked: true, marked: false}));
@@ -107,7 +112,7 @@ class Body extends Component {
 			});
 		}
 	}
-	modifyParams(args){switch(args.method){
+	handleModifyParams(args){switch(args.method){
 		case 'update':
 			this.setState({params: update(this.state.params, {[args.index]: {$merge: args.value}})}); break;
 		case 'mark':
@@ -124,7 +129,7 @@ class Body extends Component {
 		case 'fit':
 			this.fit(); break;
 	}}
-	modifyGraph(args){
+	handleModifyGraph(args){
 		const {params} = this.state;
 		let {name, index} = _extract(params, (p, i) => (p.marked ? {name: p.name, index: i} : undefined));
 		switch(name){
@@ -134,12 +139,25 @@ class Body extends Component {
 				this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dx))}}})}); break;
 		}
 	}
+	handleClick(which){switch(which){
+		case 'resultBtn':
+			this.setState({resultVisible: true}); break;
+	}}
 	render(){
 		const {params, localized, xData, expData, partial, total} = this.state;
+		const result = this.state.resultVisible && _mapA(xData, (x, i) => (
+			x+'\t'+expData[i]+'\t'+total[i]+'\t'+partial[0][i]+'\t'+partial[1][i]+'\t'+partial[2][i]+'\t'+partial[3][i]+'\t'
+		)).join('\n');
 		return (
 			<div className="body">
-				<Editor params={params} localized={localized} visible={xData.length > 0} onModify={this.mParams} />
-				<Graph xData={xData} expData={expData} partial={partial} total={total} onModify={this.mGraph} />
+				<Editor params={params} localized={localized} visible={xData.length > 0} onModify={this.hMdParams} />
+				<Graph xData={xData} expData={expData} partial={partial} total={total} onModify={this.hMdGraph} />
+				{total.length > 0 &&
+					<div><Button onClick={this.hClick.resultBtn}>Result</Button></div>
+				}
+				{result &&
+					<div className="body__result"><textarea readOnly value={result} /></div>
+				}
 				{this.state.spinner &&
 					<div className="body__spinner"><i className="fa fa-circle-o-notch fa-spin fa-fw"></i></div>
 				}

@@ -36,14 +36,12 @@ class Graph extends PureComponent {
         let dX = event.clientX - this.mouse.startPos[0];
         let dY = event.clientY - this.mouse.startPos[1];
         this.modifyParam(dX, dY);
+        this.mouse.startPos = [event.clientX, event.clientY];
       }
       break;
     case 'up':
       if(this.mouse.startPos){
-        //let dX = event.clientX - this.mouse.startPos[0];
-        //let dY = event.clientY - this.mouse.startPos[1];
         this.mouse.startPos = null;
-        //this.modifyParam(dX, dY);
       } break;
   }}
   render(){ if(this.props.xData.length == 0) return null;
@@ -52,9 +50,9 @@ class Graph extends PureComponent {
       data, label, borderColor, borderWidth: 1, fill: false, pointRadius: 0
     });
     const instData = (partial.length > 0 ? [
+      makeData(total, 'total', 'yellow'),
       makeData(partial[0], 'I11', 'red'), makeData(partial[1], 'I12', 'orange'),
-      makeData(partial[2], 'I21', 'blue'), makeData(partial[3], 'I22', 'green'),
-      makeData(total, 'total', 'yellow')
+      makeData(partial[2], 'I21', 'blue'), makeData(partial[3], 'I22', 'green')
     ] : []);
     const chartData = {
       labels: xData,
