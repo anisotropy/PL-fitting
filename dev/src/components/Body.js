@@ -6,7 +6,7 @@ import {Line} from 'react-chartjs-2';
 import LMMethod from 'ml-levenberg-marquardt';
 import update from 'immutability-helper';
 import {_plData, _pl, _paramNames} from '../functions';
-import {_wrap, _forIn, _mapO, _mapA} from '../accessories/functions';
+import {_wrap, _forIn, _mapO, _mapA, _extract} from '../accessories/functions';
 
 class Body extends Component {
 	constructor(){
@@ -24,9 +24,17 @@ class Body extends Component {
 		this.mGraph = this.modifyGraph.bind(this);
 	}
 	componentWillMount(){
-		this.setState({params: _mapA(_paramNames, (name) => (name == 'Eloc' ?
-			{name, value: '0', checked: false, marked: false} : {name, value: '0', checked: true, marked: false}
-		))});
+		let params = _mapA(_paramNames, (name) => ({name, value: '0', checked: true, marked: false}));
+		_forIn(params, (p) => {switch(p.name){
+			case 'Eloc': case 'Te': case 'Th': case 'me': case 'mh':
+				p.checked = false; break;
+		}});
+		this.setState({params});
+	}
+	componentDidUpdate(prevProps, prevState){
+		if(prevState.params != this.state.params){
+			this.renderGraph();
+		}
 	}
 	loadExpData(file){
 		let fileReader = new FileReader();
@@ -47,7 +55,6 @@ class Body extends Component {
 				_mapA(params, (p, i) => update(p, {$merge: {value: values[i]}}))
 			});
 			this.setState({params});
-			this.renderGraph(params, this.state.localized);
 		};
 		fileReader.readAsText(file);
 	}
@@ -59,9 +66,9 @@ class Body extends Component {
 		const data = {x: xData, y: expData};
 		const func = _pl(values, localized, checked);
 		const options = {
-			damping: 0.001,
+			damping: 0.1,
 			initialValues: initialValues,
-			gradientDifference: 10e-15,
+			gradientDifference: 10e-5,
 			maxIterations: 100,
 			errorTolerance: 10e-5
 		};
@@ -74,20 +81,14 @@ class Body extends Component {
 				return temp;
 			});
 			this.setState({params: newParams, spinner: false});
-			this.renderGraph(newParams, localized);
 		}, 10);
 	}
-	renderGraph(params, localized){if(this.state.xData){
+	renderGraph(){if(this.state.xData){
+		const {params, localized} = this.state;
 		let {partial, total} = _plData(_mapA(params, (p) => parseFloat(p.value)), localized, this.state.xData);
 		this.setState({partial, total});
 	}}
-	changeValue(index, value){
-		let params = update(this.state.params, {[index]: {$merge: {value}}});
-		this.setState({params});
-		this.renderGraph(params, this.state.localized);
-	}
 	changeLocalized(localized){
-		this.renderGraph(this.state.params, localized);
 		if(localized){
 			this.setState({localized,
 				params: update(this.state.params, {$apply: (params) => _mapA(params, (p) =>
@@ -109,8 +110,6 @@ class Body extends Component {
 	modifyParams(args){switch(args.method){
 		case 'update':
 			this.setState({params: update(this.state.params, {[args.index]: {$merge: args.value}})}); break;
-		case 'changeValue':
-			this.changeValue(args.index, args.value); break;
 		case 'mark':
 			this.setState({params: update(this.state.params, {$apply:(params) =>
 				_mapA(params, (p, i) => (i == args.index ? update(p, {marked: {$set: true}}) : update(p, {marked: {$set: false}})))
@@ -125,14 +124,22 @@ class Body extends Component {
 		case 'fit':
 			this.fit(); break;
 	}}
-	modifyGraph(args){switch(args.method){
-
-	}}
+	modifyGraph(args){
+		const {params} = this.state;
+		let {name, index} = _extract(params, (p, i) => (p.marked ? {name: p.name, index: i} : undefined));
+		switch(name){
+			case 'A11': case 'A12': case 'A21': case 'A22': case 'G1': case 'G2':
+				this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dy))}}})}); break;
+			case 'Eg1': case 'Eg2': case 'DEh2': case 'Ef': case 'Eloc': case 'Efh':
+				this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dx))}}})}); break;
+		}
+	}
 	render(){
+		const {params, localized, xData, expData, partial, total} = this.state;
 		return (
 			<div className="body">
-				<Editor {...this.state} onModify={this.mParams} />
-				<Graph {...this.state} onModify={this.mGraph} />
+				<Editor params={params} localized={localized} visible={xData.length > 0} onModify={this.mParams} />
+				<Graph xData={xData} expData={expData} partial={partial} total={total} onModify={this.mGraph} />
 				{this.state.spinner &&
 					<div className="body__spinner"><i className="fa fa-circle-o-notch fa-spin fa-fw"></i></div>
 				}

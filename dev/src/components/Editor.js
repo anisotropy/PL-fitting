@@ -19,10 +19,8 @@ class Editor extends PureComponent {
     this.hUdParams = _mapA(this.props.params, (p, i) => this.handleUpdateParams.bind(this, i));
   }
   handleUpdateParams(index, args){switch(args.which){
-    case 'checked':
-      this.props.onModify({method: 'update', index, value: {checked: args.value}}); break;
-    case 'value':
-      this.props.onModify({method: 'changeValue', index, value: args.value}); break;
+    case 'checked': case 'value':
+      this.props.onModify({method: 'update', index, value: {[args.which]: args.value}}); break;
     case 'marked':
       this.props.onModify({method: 'mark', index}); break;
   }}
@@ -46,31 +44,30 @@ class Editor extends PureComponent {
       );
       return <Input key={p.name} {...p} disabled={disabled} onUpdate={this.hUdParams[i]} />;
     });
-    const visible = (this.props.xData.length > 0);
     return (
       <div className="editor">
         <div className="editor__expfile">
           <span>실험데이터</span>
           <input type="file" onChange={this.hChExpFile} />
         </div>
-        {visible &&
+        {this.props.visible &&
           <div className="editor__paramfile">
             <span>매개변수</span>
             <input type="file" onChange={this.hChParamFile} />
           </div>
         }
-        {visible &&
+        {this.props.visible &&
           <div className="editor__params">
             {Inputs}
           </div>
         }
-        {visible &&
+        {this.props.visible &&
           <div className="editor__localized">
             <CheckBox checked={this.props.localized} onUpdate={this.hUdLocalized} />
             <span>Localized</span>
           </div>
         }
-        {visible &&
+        {this.props.visible &&
           <div className="editor__fit-btn">
             <Button onClick={this.hClickFitBtn}>Fitting</Button>
           </div>
@@ -82,7 +79,7 @@ class Editor extends PureComponent {
 Editor.propTypes = {
   params: PropTypes.array.isRequired,
   localized: PropTypes.bool,
-  xData: PropTypes.array,
+  visible: PropTypes.bool,
   onModify: PropTypes.func.isRequired
 };
 

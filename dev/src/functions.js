@@ -23,12 +23,6 @@ const intensity = ([A11, A12, A21, A22, G1, G2, Eg1, Eg2, DEh2, Ef, Eloc, Efh, T
 
 	return [intens(1, 1), intens(1, 2), intens(2, 1), intens(2, 2)];
 }
-/*
-export const _totalIntens = (params) => (hw) => {
-	let ps = intensity(params, hw);
-	return ps[0] + ps[1] + ps[2] + ps[3];
-};
-*/
 
 export const _pl = (allParams, localized, checked) => (params) => (hw) => {
 	let all = _mapA(allParams, (p) => p);
