@@ -2,9 +2,10 @@ import React, {PureComponent} from 'react';
 import PropTypes from 'prop-types';
 import update from 'immutability-helper';
 import {Line} from 'react-chartjs-2';
+import {_merge} from '../accessories/functions';
 
 class Graph extends PureComponent {
-  render(){
+  render(){ if(this.props.xData.length == 0) return null;
     const {xData, expData, partial, total} = this.props;
     const makeData = (data, label, borderColor) => ({
       data, label, borderColor, borderWidth: 1, fill: false, pointRadius: 0
@@ -16,7 +17,7 @@ class Graph extends PureComponent {
     ] : []);
     const chartData = {
       labels: xData,
-			datasets: [makeData(expData, 'exp', 'black')].push(instData)
+			datasets: _merge([makeData(expData, 'exp', 'black')], instData)
     };
     return (
       <div className="graph">
@@ -26,10 +27,11 @@ class Graph extends PureComponent {
   }
 }
 Graph.propTypes = {
-  xData: PropTypes.array.isRequired,
-  expData: PropTypes.array.isRequired,
+  xData: PropTypes.array,
+  expData: PropTypes.array,
   partial: PropTypes.array,
-  total: PropTypes.array
+  total: PropTypes.array,
+  onModify: PropTypes.func.isRequired
 };
 
 export default Graph;

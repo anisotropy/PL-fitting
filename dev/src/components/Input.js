@@ -1,28 +1,7 @@
 import React, {Component, PureComponent} from 'react';
 import PropTypes from 'prop-types';
+import CheckBox from './CheckBox';
 import {_class} from '../accessories/functions';
-
-class CheckBox extends PureComponent {
-  constructor(){
-    super();
-    this.hClick = this.handleClick.bind(this);
-  }
-  handleClick(){
-    this.props.onUpdate(!this.props.checked);
-  }
-  render(){
-    const {checked} = this.props;
-    return (
-      <span className={_class('checkbox', [{checked}])} onClick={this.hClick}>
-        <i className="fa fa-check" aria-hidden="true"></i>
-      </span>
-    );
-  }
-}
-CheckBox.propTypes = {
-  checked: PropTypes.bool,
-  onUpdate: PropTypes.func.isRequired
-};
 
 class Input extends PureComponent {
   constructor(){
@@ -31,22 +10,19 @@ class Input extends PureComponent {
     this.hClick = this.handleClick.bind(this);
     this.uCheckBox = this.updateCheckBox.bind(this);
   }
-  handleChange(event){
-    //this.props.onUpdate({value: event.target.value.replace(/[^0-9e\.]/, '')});
+  handleChange(event){if(!this.props.disabled){
     this.props.onUpdate({which: 'value', value: event.target.value.replace(/[^0-9e\.]/, '')});
-  }
-  handleClick(){
-    //this.props.onUpdate({marked: true});
+  }}
+  handleClick(){if(!this.props.disabled){
     this.props.onUpdate({which: 'marked', value: true});
-  }
-  updateCheckBox(checked){
-    //this.props.onUpdate({checked});
+  }}
+  updateCheckBox(checked){if(!this.props.disabled){
     this.props.onUpdate({which: 'checked', value: checked});
-  }
+  }}
   render(){
-    const {name, value, checked, marked} = this.props; console.log('input');
+    const {name, value, checked, marked, disabled} = this.props;
     return (
-      <div className={_class('input', [{marked}])}>
+      <div className={_class('input', [{marked, disabled}])}>
         <CheckBox checked={checked} onUpdate={this.uCheckBox} />
         <span className="input__name">{name}</span>
         <input type="text" value={value} onChange={this.hChange} onClick={this.hClick} />
@@ -59,6 +35,7 @@ Input.propTypes = {
   value: PropTypes.string.isRequired,
   checked: PropTypes.bool,
   marked: PropTypes.bool,
+  disabled: PropTypes.bool,
   onUpdate: PropTypes.func.isRequired
 };
 
