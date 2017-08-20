@@ -68,7 +68,6 @@ class Body extends Component {
 		this.setState({spinner: true});
 		setTimeout(() => {
 			let result = LMMethod(data, func, options);
-			console.log(result);
 			let newParams = _wrap(() => {
 				let temp = _mapA(params, (p) => p);
 				_forIn(result.parameterValues, (v, i) => {temp[checked[i]].value = ''+v;});
