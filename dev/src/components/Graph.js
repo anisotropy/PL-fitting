@@ -85,9 +85,9 @@ class Graph extends PureComponent {
 					onMouseMove={this.hMouse.move}>
 					<Line data={chartData} options={{animation: false}}/>
 				</div>
-				<div>
-					{error && <span>error: {error.value}({error.percent}%)</span>}
+				<div className="graph__footer">
 					{total.length > 0 && <Button onClick={this.hClick.resultBtn}>Result</Button>}
+					{error && <span>error: {error.value}({error.percent}%)</span>}
 				</div>
 			</div>
 		);

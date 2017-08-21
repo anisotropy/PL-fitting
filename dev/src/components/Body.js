@@ -21,7 +21,8 @@ class Body extends Component {
 			partial: [],
 			total: [],
 			fitOptions: {},
-			resultVisible: false,
+			//resultVisible: false,
+			result: '',
 			fitResult: null,
 			spinner: false
 		};
@@ -135,6 +136,8 @@ class Body extends Component {
 			this.changeLocalized(args.value); break;
 		case 'fit':
 			this.fit(); break;
+		case 'showParam':
+			this.setState({result: _mapA(this.state.params, (p) => p.name+'\t'+p.value).join('\n')}); break;
 	}}
 	handleModifyGraph(args){switch(args.method){
 		case 'modifyParam': _wrap(() => {
@@ -147,8 +150,14 @@ class Body extends Component {
 					this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dx))}}})}); break;
 			}
 		}); break;
-		case 'showResult':
-			this.setState({resultVisible: true}); break;
+		case 'showResult': _wrap(() => {
+			const {xData, expData, partial, total} = this.state;
+			let result = 'Energy\tExp\tTotal\tI11\tI12\tI21\tI22\n';
+			_forIn(xData, (x, i) => {
+				result += x+'\t'+expData[i]+'\t'+total[i]+'\t'+partial[0][i]+'\t'+partial[1][i]+'\t'+partial[2][i]+'\t'+partial[3][i]+'\n'
+			});
+			this.setState({result});
+		}); break;
 	}}
 	handleModifyFitOptions(args){switch(args.method){
 		case 'update':
@@ -156,7 +165,7 @@ class Body extends Component {
 	}}
 	handleClick(which){switch(which){
 		case 'result':
-			this.setState({resultVisible: false}); break;
+			this.setState({result: ''}); break;
 		case 'fitResult':
 			this.setState({fitResult: null}); break;
 	}}
@@ -177,8 +186,8 @@ class Body extends Component {
 					<FitOptions options={fitOptions} onModify={this.hMdFitOptions} />
 				</div>
 				<Graph xData={xData} expData={expData} partial={partial} total={total} onModify={this.hMdGraph} />
-				{this.state.resultVisible &&
-					<Result xData={xData} expData={expData} partial={partial} total={total} onClose={this.hClick.result} />
+				{this.state.result &&
+					<Result result={this.state.result} onClose={this.hClick.result} />
 				}
 				{this.state.spinner &&
 					<div className="body__spinner"><i className="fa fa-circle-o-notch fa-spin fa-fw"></i></div>
