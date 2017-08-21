@@ -59,9 +59,9 @@ class Graph extends PureComponent {
 			data, label, borderColor, borderWidth: 1, fill: false, pointRadius: 0
 		});
 		const instData = (partial.length > 0 ? [
-			makeData(total, 'total', 'yellow'),
-			makeData(partial[0], 'I11', 'red'), makeData(partial[1], 'I12', 'orange'),
-			makeData(partial[2], 'I21', 'blue'), makeData(partial[3], 'I22', 'green')
+			makeData(total, 'total', '#B40404'),
+			makeData(partial[0], 'I11', '#FFBF00'), makeData(partial[1], 'I12', '#F79F81'),
+			makeData(partial[2], 'I21', '#8181F7'), makeData(partial[3], 'I22', '#01DF74')
 		] : []);
 		const chartData = {
 			labels: xData,
