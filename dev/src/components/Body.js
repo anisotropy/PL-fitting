@@ -21,7 +21,6 @@ class Body extends Component {
 			partial: [],
 			total: [],
 			fitOptions: {},
-			//resultVisible: false,
 			result: '',
 			fitResult: null,
 			spinner: false
@@ -49,7 +48,7 @@ class Body extends Component {
 		this.setState({params, fitOptions});
 	}
 	componentDidUpdate(prevProps, prevState){
-		if(prevState.params != this.state.params){
+		if(prevState.params != this.state.params || prevState.xData != this.state.xData){
 			this.renderGraph();
 		}
 	}
@@ -95,7 +94,7 @@ class Body extends Component {
 				iterations: result.iterations
 			};
 			this.setState({params: newParams, fitResult, spinner: false});
-		}, 10);
+		}, 300);
 	}
 	renderGraph(){if(this.state.xData){
 		const {params, localized} = this.state;
@@ -121,6 +120,26 @@ class Body extends Component {
 			});
 		}
 	}
+	modifyParamByMouse(dx, dy){
+		const {params} = this.state;
+		let marked = _extract(params, (p, i) => (p.marked ? {name: p.name, index: i} : undefined));
+		if(!marked) return;
+		let {name, index} = marked;
+		switch(name){
+			case 'A11': case 'A12': case 'A21': case 'A22':
+				this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+dy))}}})}); break;
+			case 'Eg1': case 'Eg2': case 'DEh2': case 'Ef': case 'Eloc': case 'Efh': case 'G1': case 'G2':
+				this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+dx))}}})}); break;
+		}
+	}
+	showResult(){
+		const {xData, expData, partial, total} = this.state;
+		let result = 'Energy\tExp\tTotal\tI11\tI12\tI21\tI22\n';
+		_forIn(xData, (x, i) => {
+			result += x+'\t'+expData[i]+'\t'+total[i]+'\t'+partial[0][i]+'\t'+partial[1][i]+'\t'+partial[2][i]+'\t'+partial[3][i]+'\n'
+		});
+		this.setState({result});
+	}
 	handleModifyParams(args){switch(args.method){
 		case 'update':
 			this.setState({params: update(this.state.params, {[args.index]: {$merge: args.value}})}); break;
@@ -140,24 +159,8 @@ class Body extends Component {
 			this.setState({result: _mapA(this.state.params, (p) => p.name+'\t'+p.value).join('\n')}); break;
 	}}
 	handleModifyGraph(args){switch(args.method){
-		case 'modifyParam': _wrap(() => {
-			const {params} = this.state;
-			let {name, index} = _extract(params, (p, i) => (p.marked ? {name: p.name, index: i} : undefined));
-			switch(name){
-				case 'A11': case 'A12': case 'A21': case 'A22':
-					this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dy))}}})}); break;
-				case 'Eg1': case 'Eg2': case 'DEh2': case 'Ef': case 'Eloc': case 'Efh': case 'G1': case 'G2':
-					this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dx))}}})}); break;
-			}
-		}); break;
-		case 'showResult': _wrap(() => {
-			const {xData, expData, partial, total} = this.state;
-			let result = 'Energy\tExp\tTotal\tI11\tI12\tI21\tI22\n';
-			_forIn(xData, (x, i) => {
-				result += x+'\t'+expData[i]+'\t'+total[i]+'\t'+partial[0][i]+'\t'+partial[1][i]+'\t'+partial[2][i]+'\t'+partial[3][i]+'\n'
-			});
-			this.setState({result});
-		}); break;
+		case 'modifyParam': this.modifyParamByMouse(args.dx, args.dy); break;
+		case 'showResult': this.showResult(); break;
 	}}
 	handleModifyFitOptions(args){switch(args.method){
 		case 'update':

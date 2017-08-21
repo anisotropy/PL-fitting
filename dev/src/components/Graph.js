@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import update from 'immutability-helper';
 import {Line} from 'react-chartjs-2';
 import Button from './Button';
-import {_merge, _wrap, _forIn} from '../accessories/functions';
+import {_merge, _wrap, _forIn, _mapO} from '../accessories/functions';
 
 class Graph extends PureComponent {
 	constructor(){
@@ -12,14 +12,8 @@ class Graph extends PureComponent {
 			down: false,
 			startPos: null
 		};
-		this.hMouse = {
-			down: this.handleMouse.bind(this, 'down'),
-			up: this.handleMouse.bind(this, 'up'),
-			move: this.handleMouse.bind(this, 'move')
-		};
-		this.hClick = {
-			resultBtn: this.handleClick.bind(this, 'resultBtn')
-		};
+		this.hMouse = _mapO(['down', 'up', 'move', 'leave'], (action) => [action, this.handleMouse.bind(this, action)]);
+		this.hClick = _mapO(['resultBtn'], (which) => [which, this.handleClick.bind(this, which)]);
 	}
 	modifyParam(dX, dY){
 		const {xData, expData} = this.props;
@@ -45,9 +39,9 @@ class Graph extends PureComponent {
 			}
 			break;
 		case 'up':
-			if(this.mouse.startPos){
-				this.mouse.startPos = null;
-			} break;
+			if(this.mouse.startPos) this.mouse.startPos = null; break;
+		case 'leave':
+			this.mouse = {down: false, startPos: null}; break;
 	}}
 	handleClick(which){switch(which){
 		case 'resultBtn':
@@ -82,7 +76,8 @@ class Graph extends PureComponent {
 					ref="wrap"
 					onMouseDown={this.hMouse.down}
 					onMouseUp={this.hMouse.up}
-					onMouseMove={this.hMouse.move}>
+					onMouseMove={this.hMouse.move}
+					onMouseLeave={this.hMouse.leave}>
 					<Line data={chartData} options={{animation: false}}/>
 				</div>
 				<div className="graph__footer">

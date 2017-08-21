@@ -11,7 +11,7 @@ class Input extends PureComponent {
 		this.uCheckBox = this.updateCheckBox.bind(this);
 	}
 	handleChange(event){if(!this.props.disabled){
-		this.props.onUpdate({which: 'value', value: event.target.value.replace(/[^0-9e\.]/, '')});
+		this.props.onUpdate({which: 'value', value: event.target.value.replace(/[^0-9e\.-]/, '')});
 	}}
 	handleClick(){if(!this.props.disabled){
 		this.props.onUpdate({which: 'marked', value: true});
