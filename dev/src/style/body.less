@@ -1,26 +1,38 @@
-.body__spinner {
-  position: fixed;
+.body__side {
+	float: left;
+	width: 20em;
+}
+.body__fitresult {
+	position: fixed;
 	z-index: 990;
 	top: 0; left: 0;
 	width: 100%; height: 100%;
 	background-color: rgba(0, 0, 0, 0.3);
-  text-align: center;
+	p {
+		margin: 0;
+	}
+	& > div {
+		margin: calc(~"50vh - 2.5em") auto;
+		width: 12em;
+		height: 5em;
+		line-height: 1.5em;
+		padding: 1em;
+		background-color: orange;
+		color: white;
+		cursor: pointer;
+	}
+}
+.body__spinner {
+	position: fixed;
+	z-index: 990;
+	top: 0; left: 0;
+	width: 100%; height: 100%;
+	background-color: rgba(0, 0, 0, 0.3);
+	text-align: center;
 	color: @color-0;
 	i {
 		position: relative;
-    font-size: 60px;
+		font-size: 60px;
 		top: calc(~"50% - 30px");
 	}
-}
-.body__result {
-  position: fixed;
-	z-index: 990;
-	top: 0; left: 0;
-	width: 100%; height: 100%;
-	background-color: rgba(0, 0, 0, 0.3);
-  textarea {
-    margin: 10vh 10vw;
-    width: 80vw; height: 80vh;
-    font-size: @font-size*0.8;
-  }
 }

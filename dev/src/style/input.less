@@ -1,14 +1,18 @@
+.input__name {
+	display: inline-block;
+}
 .input input {
-  border: solid 1px @color-0;
+	padding-left: 0.2em;
+	border: solid 1px @color-0;
 }
 .input--marked input {
-  background-color: #ffe500;
+	background-color: #ffe500;
 }
 .input--disabled {
-  &, input {
-    color: fadeout(@color-0, 50%);
-  }
-  .checkbox, input {
-    border-color: fadeout(@color-0, 50%);
-  }
+	&, input {
+		color: fadeout(@color-0, 50%);
+	}
+	.checkbox, input {
+		border-color: fadeout(@color-0, 50%);
+	}
 }

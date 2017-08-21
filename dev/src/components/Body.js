@@ -2,9 +2,10 @@ import React, {Component} from 'react';
 import PropTypes from 'prop-types';
 import Editor from './Editor';
 import Graph from './Graph';
-import {Line} from 'react-chartjs-2';
+import FitOptions from './FitOptions';
 import LMMethod from 'ml-levenberg-marquardt';
 import Button from './Button';
+import Result from './Result';
 import update from 'immutability-helper';
 import {_plData, _pl, _paramNames} from '../functions';
 import {_wrap, _forIn, _mapO, _mapA, _extract} from '../accessories/functions';
@@ -19,13 +20,17 @@ class Body extends Component {
 			expData: [],
 			partial: [],
 			total: [],
+			fitOptions: {},
 			resultVisible: false,
+			fitResult: null,
 			spinner: false
 		};
 		this.hMdParams = this.handleModifyParams.bind(this);
 		this.hMdGraph = this.handleModifyGraph.bind(this);
+		this.hMdFitOptions = this.handleModifyFitOptions.bind(this);
 		this.hClick = {
-			resultBtn: this.handleClick.bind(this, 'resultBtn')
+			result: this.handleClick.bind(this, 'result'),
+			fitResult: this.handleClick.bind(this, 'fitResult')
 		};
 	}
 	componentWillMount(){
@@ -34,7 +39,13 @@ class Body extends Component {
 			case 'Eloc': case 'Te': case 'Th': case 'me': case 'mh':
 				p.checked = false; break;
 		}});
-		this.setState({params});
+		let fitOptions = {
+			damping: '0.1',
+			gradientDifference: '10e-5',
+			maxIterations: '100',
+			errorTolerance: '10e-5'
+		}
+		this.setState({params, fitOptions});
 	}
 	componentDidUpdate(prevProps, prevState){
 		if(prevState.params != this.state.params){
@@ -64,19 +75,12 @@ class Body extends Component {
 		fileReader.readAsText(file);
 	}
 	fit(){
-		const {xData, expData, params, localized} = this.state;
+		const {xData, expData, params, localized, fitOptions} = this.state;
 		const checked = _mapA(params, (p, i) => (p.checked ? i : undefined));
-		let values = _mapA(params, (p) => parseFloat(p.value));
-		let initialValues = _mapA(params, (p) => (p.checked ? parseFloat(p.value) : undefined));
 		const data = {x: xData, y: expData};
-		const func = _pl(values, localized, checked);
-		const options = {
-			damping: 0.1,
-			initialValues: initialValues,
-			gradientDifference: 10e-5,
-			maxIterations: 100,
-			errorTolerance: 10e-5
-		};
+		const func = _pl(_mapA(params, (p) => parseFloat(p.value)), localized, checked);
+		const options = _mapO(fitOptions, (value, name) => [name, parseFloat(value)]);
+		options.initialValues = _mapA(params, (p) => (p.checked ? parseFloat(p.value) : undefined));
 		this.setState({spinner: true});
 		setTimeout(() => {
 			let result = LMMethod(data, func, options);
@@ -85,7 +89,11 @@ class Body extends Component {
 				_forIn(result.parameterValues, (v, i) => {temp[checked[i]].value = ''+v;});
 				return temp;
 			});
-			this.setState({params: newParams, spinner: false});
+			let fitResult = {
+				error: result.parameterError.toFixed(2),
+				iterations: result.iterations
+			};
+			this.setState({params: newParams, fitResult, spinner: false});
 		}, 10);
 	}
 	renderGraph(){if(this.state.xData){
@@ -124,43 +132,58 @@ class Body extends Component {
 		case 'loadParams':
 			this.loadParams(args.file); break;
 		case 'changeLocalized':
-			this.changeLocalized(args.value);
-			break;
+			this.changeLocalized(args.value); break;
 		case 'fit':
 			this.fit(); break;
 	}}
-	handleModifyGraph(args){
-		const {params} = this.state;
-		let {name, index} = _extract(params, (p, i) => (p.marked ? {name: p.name, index: i} : undefined));
-		switch(name){
-			case 'A11': case 'A12': case 'A21': case 'A22': case 'G1': case 'G2':
-				this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dy))}}})}); break;
-			case 'Eg1': case 'Eg2': case 'DEh2': case 'Ef': case 'Eloc': case 'Efh':
-				this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dx))}}})}); break;
-		}
-	}
-	handleClick(which){switch(which){
-		case 'resultBtn':
+	handleModifyGraph(args){switch(args.method){
+		case 'modifyParam': _wrap(() => {
+			const {params} = this.state;
+			let {name, index} = _extract(params, (p, i) => (p.marked ? {name: p.name, index: i} : undefined));
+			switch(name){
+				case 'A11': case 'A12': case 'A21': case 'A22':
+					this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dy))}}})}); break;
+				case 'Eg1': case 'Eg2': case 'DEh2': case 'Ef': case 'Eloc': case 'Efh': case 'G1': case 'G2':
+					this.setState({params: update(params, {[index]: {value: {$apply: (v) => (''+(parseFloat(v)+args.dx))}}})}); break;
+			}
+		}); break;
+		case 'showResult':
 			this.setState({resultVisible: true}); break;
 	}}
+	handleModifyFitOptions(args){switch(args.method){
+		case 'update':
+			this.setState({fitOptions: update(this.state.fitOptions, {$merge: args.value})}); break;
+	}}
+	handleClick(which){switch(which){
+		case 'result':
+			this.setState({resultVisible: false}); break;
+		case 'fitResult':
+			this.setState({fitResult: null}); break;
+	}}
 	render(){
-		const {params, localized, xData, expData, partial, total} = this.state;
-		const result = this.state.resultVisible && _mapA(xData, (x, i) => (
-			x+'\t'+expData[i]+'\t'+total[i]+'\t'+partial[0][i]+'\t'+partial[1][i]+'\t'+partial[2][i]+'\t'+partial[3][i]+'\t'
-		)).join('\n');
+		const {params, localized, xData, expData, partial, total, fitOptions, fitResult} = this.state;
+		const renderedFitResult = fitResult && (
+			<div className="body__fitresult">
+				<div onClick={this.hClick.fitResult}>
+					<p>error: {fitResult.error}</p>
+					<p>iterations: {fitResult.iterations}</p>
+				</div>
+			</div>
+		)
 		return (
 			<div className="body">
-				<Editor params={params} localized={localized} visible={xData.length > 0} onModify={this.hMdParams} />
+				<div className="body__side">
+					<Editor params={params} localized={localized} visible={xData.length > 0} onModify={this.hMdParams} />
+					<FitOptions options={fitOptions} onModify={this.hMdFitOptions} />
+				</div>
 				<Graph xData={xData} expData={expData} partial={partial} total={total} onModify={this.hMdGraph} />
-				{total.length > 0 &&
-					<div><Button onClick={this.hClick.resultBtn}>Result</Button></div>
-				}
-				{result &&
-					<div className="body__result"><textarea readOnly value={result} /></div>
+				{this.state.resultVisible &&
+					<Result xData={xData} expData={expData} partial={partial} total={total} onClose={this.hClick.result} />
 				}
 				{this.state.spinner &&
 					<div className="body__spinner"><i className="fa fa-circle-o-notch fa-spin fa-fw"></i></div>
 				}
+				{renderedFitResult}
 			</div>
 		);
 	}
