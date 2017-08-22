@@ -25,6 +25,7 @@ class Body extends Component {
 			fitResult: null,
 			spinner: false
 		};
+		this.oldParams = [];
 		this.hMdParams = this.handleModifyParams.bind(this);
 		this.hMdGraph = this.handleModifyGraph.bind(this);
 		this.hMdFitOptions = this.handleModifyFitOptions.bind(this);
@@ -45,6 +46,7 @@ class Body extends Component {
 			maxIterations: '100',
 			errorTolerance: '10e-5'
 		}
+		this.oldParams = _mapA(params, (p) => p.value);
 		this.setState({params, fitOptions});
 	}
 	componentDidUpdate(prevProps, prevState){
@@ -96,9 +98,9 @@ class Body extends Component {
 			this.setState({params: newParams, fitResult, spinner: false});
 		}, 300);
 	}
-	renderGraph(){if(this.state.xData){
-		const {params, localized} = this.state;
-		let {partial, total} = _plData(_mapA(params, (p) => parseFloat(p.value)), localized, this.state.xData);
+	renderGraph(){if(this.state.xData.length > 0){
+		const {params, localized, xData} = this.state;
+		let {partial, total} = _plData(_mapA(params, (p) => (p.value ? parseFloat(p.value): 0)), localized, xData);
 		this.setState({partial, total});
 	}}
 	changeLocalized(localized){
@@ -154,9 +156,12 @@ class Body extends Component {
 		case 'changeLocalized':
 			this.changeLocalized(args.value); break;
 		case 'fit':
+			this.oldParams = _mapA(this.state.params, (p) => p.value);
 			this.fit(); break;
+		case 'undo':
+			this.setState({params: _mapA(this.state.params, (p, i) => update(p, {value: {$set: this.oldParams[i]}}))}); break;
 		case 'showParam':
-			this.setState({result: _mapA(this.state.params, (p) => p.name+'\t'+p.value).join('\n')}); break;
+			this.setState({result: _mapA(this.state.params, (p) => p.name+'\t'+(p.value ? p.value : '0')).join('\n')}); break;
 	}}
 	handleModifyGraph(args){switch(args.method){
 		case 'modifyParam': this.modifyParamByMouse(args.dx, args.dy); break;
@@ -167,10 +172,8 @@ class Body extends Component {
 			this.setState({fitOptions: update(this.state.fitOptions, {$merge: args.value})}); break;
 	}}
 	handleClick(which){switch(which){
-		case 'result':
-			this.setState({result: ''}); break;
-		case 'fitResult':
-			this.setState({fitResult: null}); break;
+		case 'result': this.setState({result: ''}); break;
+		case 'fitResult': this.setState({fitResult: null}); break;
 	}}
 	render(){
 		const {params, localized, xData, expData, partial, total, fitOptions, fitResult} = this.state;

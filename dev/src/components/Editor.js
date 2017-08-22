@@ -15,6 +15,7 @@ class Editor extends PureComponent {
 		this.hClickFitBtn = this.handleClickFitBtn.bind(this);
 		this.hUdLocalized = this.handleUpdateLocalized.bind(this);
 		this.hClickParamBtn = this.handleClickParamBtn.bind(this);
+		this.hClickUndoBtn = this.handleClickUndoBtn.bind(this);
 	}
 	componentWillMount(){
 		this.hUdParams = _mapA(this.props.params, (p, i) => this.handleUpdateParams.bind(this, i));
@@ -39,6 +40,9 @@ class Editor extends PureComponent {
 	}
 	handleClickParamBtn(){
 		this.props.onModify({method: 'showParam'});
+	}
+	handleClickUndoBtn(){
+		this.props.onModify({method: 'undo'});
 	}
 	render(){
 		const Inputs = _mapA(this.props.params, (p, i) => {
@@ -69,6 +73,7 @@ class Editor extends PureComponent {
 						</div>
 						<div className="editor__buttons">
 							<Button onClick={this.hClickFitBtn}>Fitting</Button>
+							<Button onClick={this.hClickUndoBtn}>Undo</Button>
 							<Button onClick={this.hClickParamBtn}>매개변수</Button>
 						</div>
 					</div>
