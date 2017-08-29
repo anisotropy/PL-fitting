@@ -85,7 +85,7 @@ class Body extends Component {
 		options.initialValues = _mapA(params, (p) => (p.checked ? parseFloat(p.value) : undefined));
 		this.setState({spinner: true});
 		setTimeout(() => {
-			let result = LMMethod(data, func, options);
+			let result =  LMMethod(data, func, options);
 			let newParams = _wrap(() => {
 				let temp = _mapA(params, (p) => p);
 				_forIn(result.parameterValues, (v, i) => {temp[checked[i]].value = ''+v;});
