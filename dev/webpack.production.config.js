@@ -9,7 +9,8 @@ module.exports = {
 		rules: [
 			{
 				test: /\.js$/,
-				exclude: /node_modules\/(?!(ml-matrix|ml-array-max|ml-array-mim|ml-array-rescale|ml-levenberg-marquardt)\/).*/,
+				//exclude: /node_modules\/(?!(ml-matrix|ml-array-max|ml-array-mim|ml-array-rescale|ml-levenberg-marquardt)\/).*/,
+				exclude: /node_modules/,
 				loader: 'babel-loader',
 				options: {
 					presets: ['react', 'es2015']
@@ -57,7 +58,7 @@ module.exports = {
 		}),
 		new webpack.ProvidePlugin(config.globals),
 		new webpack.optimize.OccurrenceOrderPlugin(),
-		new webpack.optimize.UglifyJsPlugin(),
+		//new webpack.optimize.UglifyJsPlugin(),
 		new ExtractTextPlugin(config.styleFilename)
 	]
 };
